@@ -19,6 +19,23 @@ HTTPRequest parseHTTPRequest(char *raw_request){
 	return parsed_request;
 }
 
+
+HTTPResponse parseHTTPResponse(char *raw_response){
+	HTTPResponse parsed_response = { .raw = raw_response };
+	
+	char *response_line = strtok(raw_response, "\r\n");
+	parsed_response.http_version = strtok(response_line, " ");
+	parsed_response.status_code = strtok(NULL, " ");
+	parsed_response.reason_phrase = strtok(NULL, " ");
+
+	char *header_end = strstr(raw_response, "\r\n\r\n");
+	char *body_start = header_end + 4;
+
+	parsed_response.body = body_start;
+
+	return parsed_response;
+}
+
 char* getHeader(char *raw, char *name){
 	char *header_line = strstr(raw, name);
 

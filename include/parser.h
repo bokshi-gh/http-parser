@@ -9,7 +9,17 @@ typedef struct {
 	
 } HTTPRequest;
 
+typedef struct {
+	char *raw;
+	char *http_version;
+	char *status_code;
+	char *reason_phrase;
+	char *body;
+	
+} HTTPResponse;
+
+
 HTTPRequest parseHTTPRequest(char *raw_request);
-HTTPRequest parseHTTPResponse(char *raw_response);
+HTTPResponse parseHTTPResponse(char *raw_response);
 char* getHeader(char *raw, char *name);
 
