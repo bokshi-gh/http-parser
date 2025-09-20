@@ -12,7 +12,7 @@ typedef struct {
 typedef struct {
 	char *raw;
 	char *http_version;
-	char *status_code;
+	unsigned short status_code;
 	char *reason_phrase;
 	char *body;
 	
