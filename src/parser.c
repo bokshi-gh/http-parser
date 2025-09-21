@@ -3,74 +3,80 @@
 #include <stdlib.h>
 #include <string.h>
 
-HTTPRequest parseHTTPRequest(char *raw_request) {
-  HTTPRequest parsed_request = {.raw = raw_request};
+HTTPRequest parseHTTPRequest(const char *raw_request) {
+    HTTPRequest req;
+    memset(&req, 0, sizeof(req));
 
-  char *request_line = strtok(raw_request, "\r\n");
-  if (!request_line)
-    return parsed_request;
+    strncpy(req.raw, raw_request, sizeof(req.raw) - 1);
 
-  parsed_request.method = strtok(request_line, " ");
-  parsed_request.path = strtok(NULL, " ");
-  parsed_request.http_version = strtok(NULL, " ");
+    char raw_copy[MAX_RAW];
+    strncpy(raw_copy, raw_request, sizeof(raw_copy) - 1);
+    char *request_line = strtok(raw_copy, "\r\n");
+    if (request_line) {
+        char *method = strtok(request_line, " ");
+        char *path = strtok(NULL, " ");
+        char *version = strtok(NULL, " ");
 
-  char *header_end = strstr(raw_request, "\r\n\r\n");
-  if (header_end)
-    parsed_request.body = header_end + 4; // body starts after \r\n\r\n
-  else
-    parsed_request.body = NULL;
+        if (method)     strncpy(req.method, method, sizeof(req.method) - 1);
+        if (path)       strncpy(req.path, path, sizeof(req.path) - 1);
+        if (version)    strncpy(req.http_version, version, sizeof(req.http_version) - 1);
+    }
 
-  return parsed_request;
+    char *header_end = strstr(raw_request, "\r\n\r\n");
+    if (header_end) {
+        char *body_start = header_end + 4;
+        strncpy(req.body, body_start, sizeof(req.body) - 1);
+    }
+
+    return req;
 }
 
-HTTPResponse parseHTTPResponse(char *raw_response) {
-  HTTPResponse parsed_response = {.raw = raw_response};
+HTTPResponse parseHTTPResponse(const char *raw_response) {
+    HTTPResponse res;
+    memset(&res, 0, sizeof(res));
 
-  char *response_line = strtok(raw_response, "\r\n");
-  if (!response_line)
-    return parsed_response;
+    strncpy(res.raw, raw_response, sizeof(res.raw) - 1);
 
-  parsed_response.http_version = strtok(response_line, " ");
-  char *status_code_str = strtok(NULL, " ");
-  if (status_code_str)
-    parsed_response.status_code = atoi(status_code_str);
+    char raw_copy[MAX_RAW];
+    strncpy(raw_copy, raw_response, sizeof(raw_copy) - 1);
 
-  char *reason_phrase = strtok(NULL, "");
-  parsed_response.reason_phrase = reason_phrase; // rest of line
+    char *response_line = strtok(raw_copy, "\r\n");
+    if (response_line) {
+        char *version = strtok(response_line, " ");
+        char *status_code_str = strtok(NULL, " ");
+        char *reason_phrase = strtok(NULL, "");
 
-  char *header_end = strstr(raw_response, "\r\n\r\n");
-  if (header_end)
-    parsed_response.body = header_end + 4;
-  else
-    parsed_response.body = NULL;
+        if (version) strncpy(res.http_version, version, sizeof(res.http_version) - 1);
+        if (status_code_str) res.status_code = (unsigned short)atoi(status_code_str);
+        if (reason_phrase) strncpy(res.reason_phrase, reason_phrase, sizeof(res.reason_phrase) - 1);
+    }
 
-  return parsed_response;
+    char *header_end = strstr(raw_response, "\r\n\r\n");
+    if (header_end) {
+        char *body_start = header_end + 4;
+        strncpy(res.body, body_start, sizeof(res.body) - 1);
+    }
+
+    return res;
 }
 
-char *getHeader(char *raw, char *name) {
-  char *header_line = strstr(raw, name);
-  if (!header_line)
-    return NULL;
+int getHeader(const char *raw, const char *name, char *out_value, size_t max_len) {
+    char *header_line = strstr((char *)raw, name);
+    if (!header_line) return 0;
 
-  char *colon = strchr(header_line, ':');
-  if (!colon)
-    return NULL;
+    char *colon = strchr(header_line, ':');
+    if (!colon) return 0;
 
-  char *value_start = colon + 1;
-  while (*value_start == ' ')
-    value_start++;
+    char *value_start = colon + 1;
+    while (*value_start == ' ') value_start++;
 
-  char *value_end = strstr(header_line, "\r\n");
-  if (!value_end)
-    return NULL;
+    char *value_end = strstr(header_line, "\r\n");
+    if (!value_end) return 0;
 
-  size_t value_len = value_end - value_start;
-  char *value = (char *)malloc(value_len + 1);
-  if (!value)
-    return NULL;
+    size_t value_len = value_end - value_start;
+    if (value_len >= max_len) value_len = max_len - 1;
 
-  strncpy(value, value_start, value_len);
-  value[value_len] = '\0';
-
-  return value;
+    strncpy(out_value, value_start, value_len);
+    out_value[value_len] = '\0';
+    return 1;
 }
