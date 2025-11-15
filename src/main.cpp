@@ -16,7 +16,7 @@ int main() {
     // Print request line
     std::cout << "Method: " << request.method << "\n";
     std::cout << "Path: " << request.path << "\n";
-    std::cout << "HTTP Version: " << request.http_version << "\n\n";
+    std::cout << "HTTP Version: " << request.version << "\n\n";
 
     // Print headers
     std::cout << "Headers:\n";
