@@ -1,6 +1,6 @@
 # HTTP Parser
 
-A lightweight HTTP request and response parser written in C, capable of parsing HTTP messages, extracting headers, and accessing the message body. Designed for learning, testing, and building simple HTTP clients or servers
+A lightweight HTTP request and response parser written in C++, capable of parsing HTTP messages, extracting headers, and accessing the message body. Designed for learning, testing, and building simple HTTP clients or servers
 
 ## Features
 
@@ -10,20 +10,10 @@ A lightweight HTTP request and response parser written in C, capable of parsing 
 - Works directly on raw HTTP strings.
 - Simple, dependency-free, and easy to integrate.
 
-## Installation
+## Getting Started
 
-1. Clone the repository:
-```bash
-git clone https://github.com/bokshi-gh/http-parser.git
-cd http-parser
-```
+Check the following files:
 
-2. Compile and Run:
-```bash
-gcc -o main -Iinclude/ src/main.c src/parser.c
-./main
-```
-
-## Usage
-
-Example usage is provided in **`src/main.c`**. Simply check/run `src/main.c` to see the use case.
+- `include/parser.hpp` - class and function definition
+- `src/parser.cp` - function implementation
+- `src/main.c` - example code demonstrating how to use http parser
