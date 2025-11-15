@@ -1,5 +1,5 @@
 #include <iostream>
-#include "../include/parser.hpp"
+#include "http_codec.hpp"
 
 int main() {
     const char* raw_request =
@@ -11,7 +11,7 @@ int main() {
         "This is the body of the request.\nIt can be multiple lines.";
 
     // Parse the HTTP request
-    HTTPRequest request = http_request_parse(raw_request);
+    HTTPRequest request = decode_http_request(raw_request);
 
     // Print request line
     std::cout << "Method: " << request.method << "\n";

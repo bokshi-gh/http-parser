@@ -25,5 +25,5 @@ public:
     string body;
 };
 
-HTTPRequest http_request_parse(const char *raw_request);
-HTTPResponse http_response_parse(const char *raw_response);
+HTTPRequest decode_http_request(const char *raw_request);
+HTTPResponse decode_http_response(const char *raw_response);

@@ -1,8 +1,8 @@
-#include "parser.hpp"
+#include "http_codec.hpp"
 #include <cstring>
 #include <string>
 
-HTTPRequest http_request_parse(const char* raw_request) {
+HTTPRequest decode_http_request(const char* raw_request) {
     HTTPRequest request;
     request.raw = raw_request;
 
@@ -49,7 +49,7 @@ HTTPRequest http_request_parse(const char* raw_request) {
     return request;
 }
 
-HTTPResponse http_response_parse(const char* raw_response) {
+HTTPResponse decode_http_response(const char* raw_response) {
     HTTPResponse response;
     response.raw = raw_response;
 
