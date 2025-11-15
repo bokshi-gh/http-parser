@@ -1,31 +1,39 @@
 #include <iostream>
 #include "http_codec.hpp"
 
+using namespace std;
+
 int main() {
-    const char* raw_request =
-        "POST /submit HTTP/1.1\r\n"
-        "Host: example.com\r\n"
-        "User-Agent: MyClient/1.0\r\n"
-        "Content-Type: text/plain\r\n"
-        "\r\n"
-        "This is the body of the request.\nIt can be multiple lines.";
+    // Build HTTPRequest object
+    HTTPRequest req;
+    req.method = "POST";
+    req.path = "/api/data";
+    req.version = "HTTP/1.1";
 
-    // Parse the HTTP request
-    HTTPRequest request = decode_http_request(raw_request);
+    req.headers["Host"] = "example.com";
+    req.headers["Content-Type"] = "application/json";
+    req.headers["Content-Length"] = "27";
 
-    // Print request line
-    std::cout << "Method: " << request.method << "\n";
-    std::cout << "Path: " << request.path << "\n";
-    std::cout << "HTTP Version: " << request.version << "\n\n";
+    req.body = R"({"name":"Alice","age":30})";  // JSON body
 
-    // Print headers
-    std::cout << "Headers:\n";
-    for (const auto& [key, value] : request.headers) {
-        std::cout << key << ": " << value << "\n";
+    // Encode HTTPRequest to string
+    string raw_request = encode_http_request(req);
+    cout << "Encoded HTTP Request:\n" << raw_request << "\n";
+
+    // Decode HTTPRequest back from string
+    HTTPRequest decoded_req = decode_http_request(raw_request.c_str());
+
+    cout << "\nDecoded HTTP Request:" << endl;
+    cout << "Method: " << decoded_req.method << endl;
+    cout << "Path: " << decoded_req.path << endl;
+    cout << "Version: " << decoded_req.version << endl;
+
+    cout << "Headers:" << endl;
+    for (const auto &h : decoded_req.headers) {
+        cout << h.first << ": " << h.second << endl;
     }
 
-    // Print body
-    std::cout << "\nBody:\n" << request.body << "\n";
+    cout << "Body: " << decoded_req.body << endl;
 
     return 0;
 }
