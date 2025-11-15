@@ -48,3 +48,50 @@ HTTPRequest http_request_parse(const char* raw_request) {
     delete[] buffer;
     return request;
 }
+
+HTTPResponse http_response_parse(const char* raw_response) {
+    HTTPResponse response;
+    response.raw = raw_response;
+
+    size_t len = std::strlen(raw_response) + 1;
+    char* buffer = new char[len];
+    std::strcpy(buffer, raw_response);
+
+    char* line = strtok(buffer, "\r\n");
+    if (line) {
+        char* token = strtok(line, " ");
+        if (token) response.http_version = token;
+
+        token = strtok(nullptr, " ");
+        if (token) response.status_code = atoi(token);
+
+        token = strtok(nullptr, " ");
+        if (token) response.reason_phrase = token;
+    }
+
+    while ((line = strtok(nullptr, "\r\n")) != nullptr) {
+        if (line[0] == '\0') {
+            // Empty line → body starts
+            break;
+        }
+        std::string header_line(line);
+        size_t colon_pos = header_line.find(':');
+        if (colon_pos != std::string::npos) {
+            std::string key = header_line.substr(0, colon_pos);
+            std::string value = header_line.substr(colon_pos + 1);
+            size_t first = value.find_first_not_of(" ");
+            if (first != std::string::npos)
+                value = value.substr(first);
+            response.headers[key] = value;
+        }
+    }
+
+    // everything after empty line
+    char* body = strtok(nullptr, ""); // remaining string
+    if (body) {
+        response.body = body;
+    }
+
+    delete[] buffer;
+    return response;
+}
