@@ -3,11 +3,11 @@
 
 HTTPRequest decode_http_request(const char* raw_request) {
     HTTPRequest request;
-    request.raw = std::string(raw_request);
+    request.raw = string(raw_request);
 
-    size_t len = std::strlen(raw_request) + 1;
+    size_t len = strlen(raw_request) + 1;
     char* buffer = new char[len];
-    std::strcpy(buffer, raw_request);
+    strcpy(buffer, raw_request);
 
     char* line = strtok(buffer, "\r\n");
     if (line) {
@@ -26,13 +26,13 @@ HTTPRequest decode_http_request(const char* raw_request) {
             // Empty line → body starts
             break;
         }
-        std::string header_line(line);
+        string header_line(line);
         size_t colon_pos = header_line.find(':');
-        if (colon_pos != std::string::npos) {
-            std::string key = header_line.substr(0, colon_pos);
-            std::string value = header_line.substr(colon_pos + 1);
+        if (colon_pos != string::npos) {
+            string key = header_line.substr(0, colon_pos);
+            string value = header_line.substr(colon_pos + 1);
             size_t first = value.find_first_not_of(" ");
-            if (first != std::string::npos)
+            if (first != string::npos)
                 value = value.substr(first);
             request.headers[key] = value;
         }
@@ -45,16 +45,17 @@ HTTPRequest decode_http_request(const char* raw_request) {
     }
 
     delete[] buffer;
+
     return request;
 }
 
 HTTPResponse decode_http_response(const char* raw_response) {
     HTTPResponse response;
-    response.raw = std::string(raw_response);
+    response.raw = string(raw_response);
 
-    size_t len = std::strlen(raw_response) + 1;
+    size_t len = strlen(raw_response) + 1;
     char* buffer = new char[len];
-    std::strcpy(buffer, raw_response);
+    strcpy(buffer, raw_response);
 
     char* line = strtok(buffer, "\r\n");
     if (line) {
@@ -73,13 +74,13 @@ HTTPResponse decode_http_response(const char* raw_response) {
             // Empty line → body starts
             break;
         }
-        std::string header_line(line);
+        string header_line(line);
         size_t colon_pos = header_line.find(':');
-        if (colon_pos != std::string::npos) {
-            std::string key = header_line.substr(0, colon_pos);
-            std::string value = header_line.substr(colon_pos + 1);
+        if (colon_pos != string::npos) {
+            string key = header_line.substr(0, colon_pos);
+            string value = header_line.substr(colon_pos + 1);
             size_t first = value.find_first_not_of(" ");
-            if (first != std::string::npos)
+            if (first != string::npos)
                 value = value.substr(first);
             response.headers[key] = value;
         }
@@ -92,6 +93,7 @@ HTTPResponse decode_http_response(const char* raw_response) {
     }
 
     delete[] buffer;
+
     return response;
 }
 
@@ -103,15 +105,11 @@ string encode_http_request(const HTTPRequest &request) {
 
     string raw_request = request.method + " " + request.path + " " + request.version + "\r\n";
 
-    // Append headers
     for (const auto &header : request.headers) {
         raw_request += header.first + ": " + header.second + "\r\n";
     }
 
-    // End of headers
     raw_request += "\r\n";
-
-    // Append body (can be empty)
     raw_request += request.body;
 
     return raw_request;
@@ -126,15 +124,12 @@ string encode_http_response(const HTTPResponse &response) {
 
     string raw_response = response.version + " " + to_string(response.status_code) + " " + response.reason_phrase + "\r\n";
 
-    // Append headers
     for (const auto &header : response.headers) {
         raw_response += header.first + ": " + header.second + "\r\n";
     }
 
-    // End of headers
     raw_response += "\r\n";
 
-    // Append body (can be empty)
     raw_response += response.body;
 
     return raw_response;
