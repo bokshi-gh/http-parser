@@ -1,98 +1,68 @@
 #include "http_codec.hpp"
+#include <cstddef>
 #include <cstring>
+#include <sstream>
 
+/*
+* WARNING:
+* The decoder function assumes the raw request/response is in standard HTTP format
+* If the raw request/response is not in the standard format due to no implemention
+* of error handling and consideration on the edge cases the function can
+* malperform and can be unsafe.
+*
+* Maybe I will fix this in upcoming version.
+* Till then let me go void.
+*/
 HTTPRequest decode_http_request(const char* raw_request) {
     HTTPRequest request;
-    request.raw = string(raw_request);
 
-    size_t len = strlen(raw_request) + 1;
-    char* buffer = new char[len];
-    strcpy(buffer, raw_request);
+    string raw_request_string = string(raw_request);
+    request.raw = raw_request_string;
 
-    char* line = strtok(buffer, "\r\n");
-    if (line) {
-        char* token = strtok(line, " ");
-        if (token) request.method = token;
+    size_t first_crlf_pos = raw_request_string.find("\r\n");
+    size_t last_crlf_pos = raw_request_string.rfind("\r\n");
 
-        token = strtok(nullptr, " ");
-        if (token) request.path = token;
+    request.body = raw_request_string.substr(last_crlf_pos + 2);
 
-        token = strtok(nullptr, " ");
-        if (token) request.version = token;
+    string request_line = raw_request_string.substr(0, first_crlf_pos);
+    istringstream iss(request_line);
+    iss >> request.method >> request.path >> request.version;
+
+    string headers = raw_request_string.substr(first_crlf_pos + 2, last_crlf_pos - (first_crlf_pos + 2));
+    while (!headers.empty()) {
+		string header = headers.substr(0, headers.find("\r\n"));
+		size_t colon_pos = header.find(":");
+		size_t value_pos = (header[colon_pos + 1] == ' ')? colon_pos + 2 : colon_pos + 1;
+		request.headers[header.substr(0, colon_pos)] = header.substr(value_pos); 
+		headers = headers.substr(headers.find("\r\n") + 2);
     }
-
-    while ((line = strtok(nullptr, "\r\n")) != nullptr) {
-        if (line[0] == '\0') {
-            // Empty line → body starts
-            break;
-        }
-        string header_line(line);
-        size_t colon_pos = header_line.find(':');
-        if (colon_pos != string::npos) {
-            string key = header_line.substr(0, colon_pos);
-            string value = header_line.substr(colon_pos + 1);
-            size_t first = value.find_first_not_of(" ");
-            if (first != string::npos)
-                value = value.substr(first);
-            request.headers[key] = value;
-        }
-    }
-
-    // everything after empty line
-    char* body = strtok(nullptr, ""); // remaining string
-    if (body) {
-        request.body = body;
-    }
-
-    delete[] buffer;
 
     return request;
 }
 
 HTTPResponse decode_http_response(const char* raw_response) {
     HTTPResponse response;
-    response.raw = string(raw_response);
 
-    size_t len = strlen(raw_response) + 1;
-    char* buffer = new char[len];
-    strcpy(buffer, raw_response);
+    string raw_response_string = string(raw_response);
+    response.raw = raw_response_string;
 
-    char* line = strtok(buffer, "\r\n");
-    if (line) {
-        char* token = strtok(line, " ");
-        if (token) response.version = token;
+    size_t first_crlf_pos = raw_response_string.find("\r\n");
+    size_t last_crlf_pos = raw_response_string.rfind("\r\n");
 
-        token = strtok(nullptr, " ");
-        if (token) response.status_code = atoi(token);
+    response.body = raw_response_string.substr(last_crlf_pos + 2);
 
-        token = strtok(nullptr, " ");
-        if (token) response.reason_phrase = token;
+    string response_line = raw_response_string.substr(0, first_crlf_pos);
+    istringstream iss(response_line);
+    iss >> response.version >> response.status_code >> response.reason_phrase;
+
+    string headers = raw_response_string.substr(first_crlf_pos + 2, last_crlf_pos - (first_crlf_pos + 2));
+    while (!headers.empty()) {
+		string header = headers.substr(0, headers.find("\r\n"));
+		size_t colon_pos = header.find(":");
+		size_t value_pos = (header[colon_pos + 1] == ' ')? colon_pos + 2 : colon_pos + 1;
+		response.headers[header.substr(0, colon_pos)] = header.substr(value_pos); 
+		headers = headers.substr(headers.find("\r\n") + 2);
     }
-
-    while ((line = strtok(nullptr, "\r\n")) != nullptr) {
-        if (line[0] == '\0') {
-            // Empty line → body starts
-            break;
-        }
-        string header_line(line);
-        size_t colon_pos = header_line.find(':');
-        if (colon_pos != string::npos) {
-            string key = header_line.substr(0, colon_pos);
-            string value = header_line.substr(colon_pos + 1);
-            size_t first = value.find_first_not_of(" ");
-            if (first != string::npos)
-                value = value.substr(first);
-            response.headers[key] = value;
-        }
-    }
-
-    // everything after empty line
-    char* body = strtok(nullptr, ""); // remaining string
-    if (body) {
-        response.body = body;
-    }
-
-    delete[] buffer;
 
     return response;
 }
