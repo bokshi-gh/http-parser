@@ -129,7 +129,6 @@ string encode_http_response(const HTTPResponse &response) {
     }
 
     raw_response += "\r\n";
-
     raw_response += response.body;
 
     return raw_response;
